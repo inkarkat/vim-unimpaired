@@ -17,10 +17,18 @@ function! s:MapNextFamily(map,cmd)
   execute 'nmap <silent> '.map.'Next     :<C-U>exe "'.a:cmd.'next'.end
   execute 'nmap <silent> '.map.'First    :<C-U>exe "'.a:cmd.'first'.end
   execute 'nmap <silent> '.map.'Last     :<C-U>exe "'.a:cmd.'last'.end
-  execute 'nmap <silent> ['.        a:map .' '.map.'Previous'
-  execute 'nmap <silent> ]'.        a:map .' '.map.'Next'
-  execute 'nmap <silent> ['.toupper(a:map).' '.map.'First'
-  execute 'nmap <silent> ]'.toupper(a:map).' '.map.'Last'
+  if !hasmapto(map.'Previous', 'n')
+    execute 'nmap <silent> ['.        a:map .' '.map.'Previous'
+  endif
+  if !hasmapto(map.'Next', 'n')
+    execute 'nmap <silent> ]'.        a:map .' '.map.'Next'
+  endif
+  if !hasmapto(map.'First', 'n')
+    execute 'nmap <silent> ['.toupper(a:map).' '.map.'First'
+  endif
+  if !hasmapto(map.'Last', 'n')
+    execute 'nmap <silent> ]'.toupper(a:map).' '.map.'Last'
+  endif
 endfunction
 
 call s:MapNextFamily('a','')
@@ -71,16 +79,28 @@ endfunction
 nnoremap <silent> <Plug>unimpairedONext     :<C-U>edit `=<SID>FileByOffset(v:count1)`<CR>
 nnoremap <silent> <Plug>unimpairedOPrevious :<C-U>edit `=<SID>FileByOffset(-v:count1)`<CR>
 
-nmap ]o <Plug>unimpairedONext
-nmap [o <Plug>unimpairedOPrevious
+if !hasmapto('<Plug>unimpairedONext', 'n')
+  nmap ]o <Plug>unimpairedONext
+endif
+if !hasmapto('<Plug>unimpairedOPrevious', 'n')
+  nmap [o <Plug>unimpairedOPrevious
+endif
 
 " }}}1
 " Diff {{{1
 
-nmap [n <Plug>unimpairedContextPrevious
-nmap ]n <Plug>unimpairedContextNext
-omap [n <Plug>unimpairedContextPrevious
-omap ]n <Plug>unimpairedContextNext
+if !hasmapto('<Plug>unimpairedContextPrevious', 'n')
+  nmap [n <Plug>unimpairedContextPrevious
+endif
+if !hasmapto('<Plug>unimpairedContextNext', 'n')
+  nmap ]n <Plug>unimpairedContextNext
+endif
+if !hasmapto('<Plug>unimpairedContextPrevious', 'o')
+  omap [n <Plug>unimpairedContextPrevious
+endif
+if !hasmapto('<Plug>unimpairedContextNext', 'o')
+  omap ]n <Plug>unimpairedContextNext
+endif
 
 nnoremap <silent> <Plug>unimpairedContextPrevious :call <SID>Context(1)<CR>
 nnoremap <silent> <Plug>unimpairedContextNext     :call <SID>Context(0)<CR>
@@ -139,8 +159,12 @@ endfunction
 nnoremap <silent> <Plug>unimpairedBlankUp   :<C-U>call <SID>BlankUp(v:count1)<CR>
 nnoremap <silent> <Plug>unimpairedBlankDown :<C-U>call <SID>BlankDown(v:count1)<CR>
 
-nmap [<Space> <Plug>unimpairedBlankUp
-nmap ]<Space> <Plug>unimpairedBlankDown
+if !hasmapto('<Plug>unimpairedBlankUp', 'n')
+  nmap [<Space> <Plug>unimpairedBlankUp
+endif
+if !hasmapto('<Plug>unimpairedBlankDown', 'n')
+  nmap ]<Space> <Plug>unimpairedBlankDown
+endif
 
 function! s:Move(cmd, count, map) abort
   normal! m`
@@ -154,10 +178,18 @@ nnoremap <silent> <Plug>unimpairedMoveDown :<C-U>call <SID>Move('+',v:count1,'Do
 xnoremap <silent> <Plug>unimpairedMoveUp   :<C-U>exe 'normal! m`'<Bar>exe '''<,''>move--'.v:count1<CR>``
 xnoremap <silent> <Plug>unimpairedMoveDown :<C-U>exe 'normal! m`'<Bar>exe '''<,''>move''>+'.v:count1<CR>``
 
-nmap [e <Plug>unimpairedMoveUp
-nmap ]e <Plug>unimpairedMoveDown
-xmap [e <Plug>unimpairedMoveUp
-xmap ]e <Plug>unimpairedMoveDown
+if !hasmapto('<Plug>unimpairedMoveUp', 'n')
+  nmap [e <Plug>unimpairedMoveUp
+endif
+if !hasmapto('<Plug>unimpairedMoveDown', 'n')
+  nmap ]e <Plug>unimpairedMoveDown
+endif
+if !hasmapto('<Plug>unimpairedMoveUp', 'x')
+  xmap [e <Plug>unimpairedMoveUp
+endif
+if !hasmapto('<Plug>unimpairedMoveDown', 'x')
+  xmap ]e <Plug>unimpairedMoveDown
+endif
 
 " }}}1
 " Encoding and decoding {{{1
@@ -379,9 +411,15 @@ function! s:MapTransform(algorithm, key)
   exe 'nnoremap <silent> <Plug>unimpaired'    .a:algorithm.' :<C-U>call <SID>TransformSetup("'.a:algorithm.'")<CR>g@'
   exe 'xnoremap <silent> <Plug>unimpaired'    .a:algorithm.' :<C-U>call <SID>Transform("'.a:algorithm.'",visualmode())<CR>'
   exe 'nnoremap <silent> <Plug>unimpairedLine'.a:algorithm.' :<C-U>call <SID>Transform("'.a:algorithm.'",v:count1)<CR>'
-  exe 'nmap '.a:key.'  <Plug>unimpaired'.a:algorithm
-  exe 'xmap '.a:key.'  <Plug>unimpaired'.a:algorithm
-  exe 'nmap '.a:key.a:key[strlen(a:key)-1].' <Plug>unimpairedLine'.a:algorithm
+  if !hasmapto('<Plug>unimpaired'.a:algorithm, 'n')
+    exe 'nmap '.a:key.'  <Plug>unimpaired'.a:algorithm
+  endif
+  if !hasmapto('<Plug>unimpaired'.a:algorithm, 'x')
+    exe 'xmap '.a:key.'  <Plug>unimpaired'.a:algorithm
+  endif
+  if !hasmapto('<Plug>unimpairedLine'.a:algorithm, 'n')
+    exe 'nmap '.a:key.a:key[strlen(a:key)-1].' <Plug>unimpairedLine'.a:algorithm
+  endif
 endfunction
 
 call s:MapTransform('StringEncode','[y')
